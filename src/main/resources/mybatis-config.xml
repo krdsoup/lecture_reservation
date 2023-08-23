@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <typeAliases>
+        <package name="java.lang"/>
+        <package name="java.util.Map"/>
+        <package name="java.util.List"/>
+        <package name="dsoup.reservation.lecture.dto"/>
+        <package name="dsoup.reservation.lecture.manager.reservation.dto"/>
+        <package name="dsoup.reservation.lecture.employee.reservation.dto"/>
+    </typeAliases>
+    <mappers>
+        <mapper resource="mapper/manager/MngLectureReservationMapper.xml"/>
+        <mapper resource="mapper/employee/EmpLectureReservationMapper.xml"/>
+    </mappers>
+</configuration>

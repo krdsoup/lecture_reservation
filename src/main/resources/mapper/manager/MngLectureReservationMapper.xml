@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="dsoup.reservation.lecture.manager.reservation.mapper.MngLectureReservationMapper">
+	
+	<select id="selectLectureList" parameterType="MngLectureReqDTO" resultType="MngLectureDTO">
+		select
+			A.*
+			, lh.lecture_hall_name
+			, case when A.lecture_seats_max > ifnull(lrA.reservationCount,0) then ifnull(lrA.reservationCount,0) 
+				else A.lecture_seats_max 
+				end reservationCount
+		from (
+			select
+				l.lecture_id
+				, l.lecture_hall_id
+				, l.lecturer_name
+				, l.lecture_title
+				, l.lecture_contents
+				, l.lecture_start_time
+				, l.lecture_end_time
+				, l.lecture_seats_max
+				, l.employee_id
+				, l.create_time
+				, l.update_time
+			from lecture l
+			where l.use_yn = 1
+			<if test="searchText != null and searchText != ''">
+			and (
+				l.lecturer_name = #{searchText}
+				or l.lecture_title like concat('%',#{searchText},'%')
+				or l.lecture_contents like concat('%',#{searchText},'%')
+			)
+			</if>
+			<if test="searchStartTime != null and searchStartTime != ''">
+				and l.lecture_start_time >= #{searchStartTime}
+			</if>
+			<if test="searchEndTime != null and searchEndTime != ''">
+				and l.lecture_end_time <![CDATA[<=]]> #{searchEndTime}
+			</if>
+			order by l.lecture_start_time desc
+			<if test="page > 0 and size > 0">
+				limit #{size}
+				offset #{start}
+			</if>
+		) A
+		left join lecture_hall lh
+		on A.lecture_hall_id = lh.lecture_hall_id
+		and lh.use_yn = 1
+		left join lateral (
+			select lecture_id, count(*) as reservationCount
+			from lecture_registration
+			where lecture_id = A.lecture_id
+			and use_yn = 1
+		) lrA
+		on A.lecture_id = lrA.lecture_id
+		order by A.lecture_start_time desc
+	</select>
+	
+	<select id="selectLectureListCount" parameterType="MngLectureReqDTO" resultType="Integer">
+		select
+			count(*)
+		from lecture l
+		where l.use_yn = 1
+		<if test="searchText != null and searchText != ''">
+			and (
+				l.lecturer_name = #{searchText}
+				or l.lecture_title like concat('%',#{searchText},'%')
+				or l.lecture_contents like concat('%',#{searchText},'%')
+			)
+		</if>
+		<if test="searchStartTime != null and searchStartTime != ''">
+			and l.lecture_start_time >= #{searchStartTime}
+		</if>
+		<if test="searchEndTime != null and searchEndTime != ''">
+			and l.lecture_end_time <![CDATA[<=]]> #{searchEndTime}
+		</if>
+	</select>
+	
+	<insert id="insertLecture" parameterType="MngLectureDTO">
+		insert into lecture (
+			lecture_hall_id
+			, lecturer_name
+			, lecture_title
+			, lecture_contents
+			, lecture_start_time
+			, lecture_end_time
+			, lecture_seats_max
+			, employee_id
+		)
+		values (
+			#{lectureHallId}
+			, #{lecturerName}
+			, #{lectureTitle}
+			, #{lectureContents}
+			, #{lectureStartTime}
+			, #{lectureEndTime}
+			, #{lectureSeatsMax}
+			, #{employeeId}
+		)
+	</insert>
+	
+	<select id="selectLecture" parameterType="Long" resultType="MngLectureDTO">
+		select
+			A.*
+			, lh.lecture_hall_name
+		from (
+			select
+				l.lecture_id
+				, l.lecture_hall_id
+				, l.lecturer_name
+				, l.lecture_title
+				, l.lecture_contents
+				, l.lecture_start_time
+				, l.lecture_end_time
+				, l.lecture_seats_max
+				, l.employee_id
+				, l.create_time
+				, l.update_time
+			from lecture l
+			where l.lecture_id = #{lectureId}
+			and l.use_yn = 1
+		) A
+		left join lecture_hall lh
+		on A.lecture_hall_id = lh.lecture_hall_id
+		and lh.use_yn = 1
+		left join employee e
+		on A.employee_id = e.employee_id
+		and e.use_yn = 1
+	</select>
+	
+	<select id="selectLectureReservationList" parameterType="Long" resultType="MngLectureRegistrationDTO">
+		select
+			lr.lecture_registration_id
+			, lr.lecture_id
+			, lr.employee_id
+			, e.employee_number
+			, e.name as employeeName
+			, lr.create_time
+			, lr.update_time
+		from lecture_registration lr
+		inner join employee e
+		on lr.employee_id = e.employee_id
+		and e.use_yn = 1
+		where lr.lecture_id = #{lectureId}
+		and lr.use_yn = 1
+		order by lr.create_time 
+	</select>
+	
+</mapper>
