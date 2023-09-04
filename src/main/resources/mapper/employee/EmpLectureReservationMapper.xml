@@ -243,11 +243,13 @@
 					else l.lecture_seats_max 
 					end reservationCount
 			from lecture l
-			left join (
+			left join lateral (
 				select lecture_id, count(*) as reservationCount
 				from lecture_registration
 				where create_time between date_add(now(), interval -3 day) and now()
+				and lecture_id = l.lecture_id
 				and use_yn = 1
+				group by lecture_id
 			) lr
 			on l.lecture_id = lr.lecture_id
 			where l.lecture_start_time between date_add(now(), interval -1 day) 
