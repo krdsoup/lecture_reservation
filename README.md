@@ -101,10 +101,10 @@ flowchart LR
 1-->|Api|2
 2-->|인증 URI|3
 2-->|강연정보 URI|4
-subgraph <b><직원>
+subgraph 직원
 	3-->5
 end
-subgraph <b><강연>
+subgraph 강연
 	4-->6
 	4-->|신청자, 랭킹|7
 end
